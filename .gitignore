@@ -63,7 +63,6 @@ lib*.a
 .dirstamp
 autom4te.cache/
 /config.cache
-config.h
 /config.log
 /config.status
 /Makefile
@@ -85,3 +84,6 @@ src/Makefile
 
 # Ignore compiled Python files.
 *.pyc
+
+xcuserdata/
+/External.MRepoState

@@ -36,6 +36,7 @@
 
 #include "common/module.h"
 #include "common/string_view.h"
+#include "common/module_binary.h"
 
 #include <assert.h>
 #include <errno.h>
