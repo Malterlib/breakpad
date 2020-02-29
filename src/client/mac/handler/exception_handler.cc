@@ -36,6 +36,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <TargetConditionals.h>
+#include <dlfcn.h>
 
 #include <map>
 #include <memory>
@@ -60,11 +61,7 @@
 #endif  // __EXCEPTIONS
 
 #ifndef USE_PROTECTED_ALLOCATIONS
-#if TARGET_OS_IPHONE
 #define USE_PROTECTED_ALLOCATIONS 1
-#else
-#define USE_PROTECTED_ALLOCATIONS 0
-#endif
 #endif
 
 // If USE_PROTECTED_ALLOCATIONS is activated then the
@@ -139,7 +136,7 @@ extern "C" {
                                       exception_type_t exception,
                                       exception_data_t code,
                                       mach_msg_type_number_t code_count)
-      __attribute__((visibility("default")));
+      __attribute__((visibility("default"))) __attribute__((used));
 }
 #endif
 
