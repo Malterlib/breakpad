@@ -38,7 +38,7 @@
 
 #include <assert.h>
 #include <cxxabi.h>
-#include <elf.h>
+#include "elf.h"
 #include <string.h>
 
 #include <memory>
@@ -46,6 +46,10 @@
 
 #include "common/byte_cursor.h"
 #include "common/module.h"
+
+#ifdef __APPLE__
+	#include "../../third_party/string/memrchr.h"
+#endif
 
 namespace google_breakpad {
 
