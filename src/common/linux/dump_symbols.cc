@@ -38,11 +38,11 @@
 #include "common/linux/dump_symbols.h"
 
 #include <assert.h>
-#include <elf.h>
+#include "elf.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
-#include <link.h>
+#include "link.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,6 +53,10 @@
 #include <zlib.h>
 #ifdef HAVE_LIBZSTD
 #include <zstd.h>
+#endif
+
+#ifdef __APPLE__
+  #include <stddef.h>
 #endif
 
 #include <memory>
@@ -80,6 +84,10 @@
 #ifndef NO_STABS_SUPPORT
 #include "common/stabs_reader.h"
 #include "common/stabs_to_module.h"
+#endif
+
+#ifdef __APPLE__
+	#include <libgen.h>
 #endif
 
 // This namespace contains helper functions.
