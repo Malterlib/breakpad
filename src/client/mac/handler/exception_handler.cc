@@ -207,7 +207,7 @@ extern "C"
 {
   bool (*breakpad_should_handle_exception_ptr)(pthread_t pThread) = 0;
 }
-	
+
 
 // Callback from exc_server()
 kern_return_t catch_exception_raise(mach_port_t port, mach_port_t failed_thread,
@@ -215,7 +215,7 @@ kern_return_t catch_exception_raise(mach_port_t port, mach_port_t failed_thread,
                                     exception_type_t exception,
                                     exception_data_t code,
                                     mach_msg_type_number_t code_count) {
-	
+
   if (task != mach_task_self()) {
     return KERN_FAILURE;
   }
@@ -223,7 +223,7 @@ kern_return_t catch_exception_raise(mach_port_t port, mach_port_t failed_thread,
   auto ptherad = pthread_from_mach_thread_np(failed_thread);
   if (ptherad && breakpad_should_handle_exception_ptr && !breakpad_should_handle_exception_ptr(ptherad))
     return KERN_FAILURE;
-	
+
   return ForwardException(task, failed_thread, exception, code, code_count);
 }
 #endif
@@ -470,18 +470,20 @@ kern_return_t ForwardException(mach_port_t task, mach_port_t failed_thread,
   mach_port_t target_port = current.ports[found];
   exception_behavior_t target_behavior = current.behaviors[found];
 
-  kern_return_t result;
+  kern_return_t result = KERN_FAILURE;
   // TODO: Handle the case where |target_behavior| has MACH_EXCEPTION_CODES
   // set. https://bugs.chromium.org/p/google-breakpad/issues/detail?id=551
-  switch (target_behavior) {
-    case EXCEPTION_DEFAULT:
-      result = exception_raise(target_port, failed_thread, task, exception,
-                               code, code_count);
-      break;
-    default:
-      fprintf(stderr, "** Unknown exception behavior: %d\n", target_behavior);
-      result = KERN_FAILURE;
-      break;
+  if (target_port) {
+    switch (target_behavior) {
+      case EXCEPTION_DEFAULT:
+        result = exception_raise(target_port, failed_thread, task, exception,
+                                 code, code_count);
+        break;
+      default:
+        fprintf(stderr, "** Unknown exception behavior: %d %d\n", target_port, target_behavior);
+        result = KERN_FAILURE;
+        break;
+    }
   }
 
   return result;
@@ -570,9 +572,9 @@ void* ExceptionHandler::WaitForMessage(void* exception_handler_class) {
         // still need to call into the exception server and have it return
         // KERN_FAILURE (see catch_exception_raise) in order for the kernel
         // to move onto the host exception handler for the child task
-		  
+
         auto ptherad = pthread_from_mach_thread_np(receive.thread.name);
-		 
+
         bool should_handle_exception = true;
         if (ptherad && breakpad_should_handle_exception_ptr)
           should_handle_exception = breakpad_should_handle_exception_ptr(ptherad);
@@ -614,7 +616,7 @@ void* ExceptionHandler::WaitForMessage(void* exception_handler_class) {
         // code into the reply.
         ExceptionReplyMessage reply;
         if (!breakpad_exc_server(&receive.header, &reply.header))
-          exit(1);
+          _exit(1);
 
         // Send a reply and exit
         mach_msg(&(reply.header), MACH_SEND_MSG,
