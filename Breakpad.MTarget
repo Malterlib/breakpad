@@ -8,6 +8,9 @@ Property.MalterilBreakpadLibsEnabled: bool = false
 		Location "src/third_party/lss"->MakeAbsolute()
 		DefaultUpstreamBranch "main"
 		Remotes =+ {Name: "upstream", URL: "https://chromium.googlesource.com/linux-syscall-support"}
+		{
+			!!MalterlibAddUpstreams true
+		}
 	}
 }
 
