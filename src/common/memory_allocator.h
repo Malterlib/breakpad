@@ -83,7 +83,16 @@ class PageAllocator {
     if (!bytes)
       return nullptr;
 
-    if (current_page_ && page_size_ - page_offset_ >= bytes) {
+    if (current_page_) {
+      const size_t alignment = sizeof(void*);
+      const size_t aligned_offset = AlignUp(page_offset_, alignment);
+      if (page_size_ - aligned_offset < bytes)
+        current_page_ = nullptr;
+      else
+        page_offset_ = aligned_offset;
+    }
+
+    if (current_page_) {
       uint8_t* const ret = current_page_ + page_offset_;
       page_offset_ += bytes;
       if (page_offset_ == page_size_) {
@@ -106,6 +115,41 @@ class PageAllocator {
     current_page_ = page_offset_ ? ret + page_size_ * (pages - 1) : nullptr;
 
     return ret + sizeof(PageHeader);
+  }
+
+  void* Alloc(size_t bytes, size_t alignment) {
+    if (!bytes)
+      return nullptr;
+
+    assert(alignment > 0 && ((alignment - 1) & alignment) == 0);
+
+    if (current_page_) {
+      const size_t aligned_offset = AlignUp(page_offset_, alignment);
+      if (page_size_ - aligned_offset >= bytes) {
+        page_offset_ = aligned_offset;
+        uint8_t* const ret = current_page_ + page_offset_;
+        page_offset_ += bytes;
+        if (page_offset_ == page_size_) {
+          page_offset_ = 0;
+          current_page_ = nullptr;
+        }
+
+        return ret;
+      }
+    }
+
+    const size_t header_size = AlignUp(sizeof(PageHeader), alignment);
+    const size_t pages = (bytes + header_size + page_size_ - 1) / page_size_;
+    uint8_t* const ret = GetNPages(pages);
+    if (!ret)
+      return nullptr;
+
+    page_offset_ =
+        (page_size_ - (page_size_ * pages - (bytes + header_size))) %
+        page_size_;
+    current_page_ = page_offset_ ? ret + page_size_ * (pages - 1) : nullptr;
+
+    return ret + header_size;
   }
 
   // Checks whether the page allocator owns the passed-in pointer.
@@ -198,7 +242,7 @@ struct PageStdAllocator {
     if (size <= stackdata_size_) {
       return stackdata_;
     }
-    return static_cast<pointer>(allocator_.Alloc(size));
+    return static_cast<pointer>(allocator_.Alloc(size, alignof(T)));
   }
 
   inline void deallocate(pointer, size_type) {

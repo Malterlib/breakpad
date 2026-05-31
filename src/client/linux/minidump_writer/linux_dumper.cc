@@ -44,6 +44,7 @@
 #include <elf.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <new>
 #include <stddef.h>
 #include <string.h>
 
@@ -625,7 +626,9 @@ bool LinuxDumper::EnumerateMappings() {
               }
             }
           }
-          MappingInfo* const module = new(allocator_) MappingInfo;
+          MappingInfo* const module =
+              new(allocator_.Alloc(sizeof(MappingInfo), alignof(MappingInfo)))
+                  MappingInfo;
           mappings_.push_back(module);
           my_memset(module, 0, sizeof(MappingInfo));
           module->system_mapping_info.start_addr = start_addr;

@@ -47,6 +47,7 @@ class DirectoryReader {
  public:
   DirectoryReader(int fd)
       : fd_(fd),
+        hit_eof_(false),
         buf_used_(0) {
   }
 
@@ -97,7 +98,7 @@ class DirectoryReader {
   const int fd_;
   bool hit_eof_;
   unsigned buf_used_;
-  uint8_t buf_[sizeof(struct kernel_dirent) + NAME_MAX + 1];
+  alignas(struct kernel_dirent) uint8_t buf_[sizeof(struct kernel_dirent) + NAME_MAX + 1];
 };
 
 }  // namespace google_breakpad
