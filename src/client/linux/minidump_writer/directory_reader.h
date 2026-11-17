@@ -47,7 +47,8 @@ class DirectoryReader {
  public:
   DirectoryReader(int fd)
       : fd_(fd),
-        buf_used_(0) {
+        buf_used_(0),
+        hit_eof_(false) {
   }
 
   // Return the next entry from the directory
