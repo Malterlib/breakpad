@@ -266,9 +266,11 @@ class auto_wasteful_vector : public wasteful_vector<T> {
 
 }  // namespace google_breakpad
 
+// Aligned for any type rather than for __STDCPP_DEFAULT_NEW_ALIGNMENT__, which
+// -fnew-alignment can lower below the alignment of the types allocated here.
 inline void* operator new(size_t nbytes,
                           google_breakpad::PageAllocator& allocator) {
-  return allocator.Alloc(nbytes, __STDCPP_DEFAULT_NEW_ALIGNMENT__);
+  return allocator.Alloc(nbytes, alignof(std::max_align_t));
 }
 
 #endif  // GOOGLE_BREAKPAD_COMMON_MEMORY_ALLOCATOR_H_
